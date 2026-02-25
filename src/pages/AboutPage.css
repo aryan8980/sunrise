@@ -1,0 +1,53 @@
+.about-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.about-hero {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, #fff, #faf4f7);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+}
+
+.about-hero__eyebrow {
+  margin: 0 0 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.about-hero .section-title {
+  margin-bottom: 0.4rem;
+}
+
+.about-hero__text {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+}
+
+.about-card {
+  background: linear-gradient(165deg, #ffffff, #fcf7f9);
+}
+
+.about-card h3 {
+  margin: 0 0 0.35rem;
+  color: #5d1733;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+}
+
+.about-card p {
+  margin: 0;
+  color: #775b67;
+}

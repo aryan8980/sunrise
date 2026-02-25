@@ -1,0 +1,11 @@
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard-stats + .form-card,
+.dashboard-stats + .form-card + .form-card {
+  margin-top: 1rem;
+}

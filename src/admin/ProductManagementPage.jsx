@@ -1,0 +1,253 @@
+import { useEffect, useState } from 'react';
+import { addProduct, deleteProduct, listProducts, updateProduct } from '../services/productService';
+import { addCategory, listCategories } from '../services/categoryService';
+import { formatCurrency } from '../utils/helpers';
+import './ProductManagementPage.css';
+
+const initialProduct = {
+  name: '',
+  category: '',
+  description: '',
+  sizes: 'S,M,L',
+  available: true,
+  images: '',
+  price: 0
+};
+
+function ProductManagementPage() {
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [form, setForm] = useState(initialProduct);
+  const [editingId, setEditingId] = useState(null);
+  const [status, setStatus] = useState('');
+  const [showForm, setShowForm] = useState(false);
+
+  const loadProducts = () => listProducts().then(setProducts).catch(console.error);
+  const loadCategories = () => listCategories().then(setCategories).catch(console.error);
+
+  useEffect(() => {
+    loadProducts();
+    loadCategories();
+  }, []);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setStatus('');
+    const resolvedCategory = form.category.trim();
+
+    if (!resolvedCategory) {
+      setStatus('Category is required.');
+      return;
+    }
+
+    const hasCategory = categories.some(
+      (category) => (category.name || '').toLowerCase() === resolvedCategory.toLowerCase()
+    );
+
+    if (!hasCategory) {
+      await addCategory({
+        name: resolvedCategory,
+        order: categories.length + 1
+      });
+      await loadCategories();
+    }
+
+    const payload = {
+      ...form,
+      category: resolvedCategory,
+      sizes: form.sizes.split(',').map((size) => size.trim()),
+      images: form.images
+        .split('\n')
+        .map((url) => url.trim())
+        .filter(Boolean),
+      price: Number(form.price)
+    };
+
+    if (editingId) {
+      await updateProduct(editingId, payload);
+    } else {
+      await addProduct(payload);
+    }
+
+    setForm(initialProduct);
+    setEditingId(null);
+    setStatus(editingId ? 'Product updated successfully.' : 'Product added successfully.');
+    setShowForm(false);
+    loadProducts();
+  };
+
+  const handleQuickAddCategory = async () => {
+    const name = window.prompt('Add new category');
+    if (!name) return;
+
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    const exists = categories.some((category) => category.name?.toLowerCase() === trimmed.toLowerCase());
+    if (!exists) {
+      await addCategory({ name: trimmed, order: categories.length + 1 });
+      await loadCategories();
+    }
+    setForm({ ...form, category: trimmed });
+  };
+
+  const handleEdit = (product) => {
+    setEditingId(product.id);
+    setShowForm(true);
+    setForm({
+      ...product,
+      sizes: (product.sizes || []).join(','),
+      images: (product.images || []).join('\n')
+    });
+  };
+
+  return (
+    <section className='product-module'>
+      <div className='product-module__top'>
+        <h1 className='section-title'>Products</h1>
+        <div className='product-module__chips'>
+          <span className='product-chip product-chip--active'>Products ({products.length})</span>
+          <span className='product-chip'>Categories ({categories.length})</span>
+        </div>
+        <button
+          className='btn product-module__add'
+          type='button'
+          onClick={() => {
+            setShowForm((prev) => !prev);
+            if (showForm) {
+              setEditingId(null);
+              setForm(initialProduct);
+            }
+          }}
+        >
+          + Add New Product
+        </button>
+      </div>
+
+      {showForm && (
+        <form className='form-card product-form product-form--premium' onSubmit={handleSubmit}>
+          <h2>{editingId ? 'Edit Product' : 'Add New Product'}</h2>
+
+          <div className='product-form__row'>
+            <label className='product-form__field'>
+              <span>Product Name *</span>
+              <input
+                placeholder='Enter product name'
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+              />
+            </label>
+
+            <div className='product-form__field'>
+              <span>Category *</span>
+              <div className='product-form__category'>
+                <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required>
+                  <option value=''>Select category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <button type='button' className='btn btn--ghost product-form__plus' onClick={handleQuickAddCategory}>
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <label className='product-form__field'>
+            <span>Price *</span>
+            <input
+              type='number'
+              placeholder='Enter price'
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              required
+            />
+          </label>
+
+          <label className='product-form__field'>
+            <span>Description *</span>
+            <textarea
+              placeholder='Describe the product...'
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              rows='5'
+              required
+            />
+          </label>
+
+          <label className='product-form__field'>
+            <span>Image URLs * (one per line)</span>
+            <textarea
+              placeholder={'https://example.com/image1.jpg\nhttps://example.com/image2.jpg'}
+              value={form.images}
+              onChange={(e) => setForm({ ...form, images: e.target.value })}
+              rows='4'
+              required
+            />
+          </label>
+
+          <div className='product-form__extras'>
+            <label>
+              <span>Sizes (comma separated)</span>
+              <input value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} />
+            </label>
+          </div>
+
+          <div className='product-form__stock'>
+            <span>Stock Status *</span>
+            <label>
+              <input
+                type='radio'
+                name='stockStatus'
+                checked={form.available === true}
+                onChange={() => setForm({ ...form, available: true })}
+              />
+              In Stock
+            </label>
+            <label>
+              <input
+                type='radio'
+                name='stockStatus'
+                checked={form.available === false}
+                onChange={() => setForm({ ...form, available: false })}
+              />
+              Out of Stock
+            </label>
+          </div>
+
+          <button className='btn' type='submit'>
+            {editingId ? 'Update Product' : 'Add Product'}
+          </button>
+          {status && <p className='product-form__status'>{status}</p>}
+        </form>
+      )}
+
+      <div className='product-grid'>
+        {products.map((product) => (
+          <article className='product-tile' key={product.id}>
+            <img src={product.images?.[0]} alt={product.name} />
+            <div className='product-tile__body'>
+              <h3>{product.name}</h3>
+              <p>{product.category}</p>
+              <strong>{formatCurrency(product.price)}</strong>
+            </div>
+            <div className='product-tile__actions'>
+              <button className='btn btn--ghost' onClick={() => handleEdit(product)}>
+                Edit
+              </button>
+              <button className='btn btn--ghost' onClick={() => deleteProduct(product.id).then(loadProducts)}>
+                Delete
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default ProductManagementPage;

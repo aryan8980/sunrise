@@ -1,0 +1,48 @@
+.inquiry-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.inquiry-list .form-card {
+  background: linear-gradient(165deg, #fff, #fcf7f9);
+}
+
+.inquiry-card--done {
+  border-color: #95d5b3;
+  background: linear-gradient(165deg, #f4fff8, #ecfff3) !important;
+}
+
+.inquiry-card--ongoing {
+  border-color: #f2d7a1;
+}
+
+.inquiry-actions {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.inquiry-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.inquiry-status span {
+  color: #5d1733;
+  font-weight: 700;
+}
+
+.inquiry-status__select--done {
+  border-color: #95d5b3;
+  background: #f1fff6;
+  color: #2d6a4f;
+}
+
+.inquiry-status__select--ongoing {
+  border-color: #f2d7a1;
+  background: #fff9ed;
+  color: #8a5a14;
+}

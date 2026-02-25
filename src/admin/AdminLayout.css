@@ -1,0 +1,16 @@
+.admin-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  background: linear-gradient(180deg, #f8f4f6, #f4eef2);
+  min-height: 100vh;
+}
+
+.admin-content {
+  padding: 1.4rem;
+}
+
+@media (max-width: 900px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+}

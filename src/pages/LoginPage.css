@@ -1,0 +1,15 @@
+.login-page {
+  display: grid;
+  place-items: center;
+}
+
+.login-form {
+  width: min(450px, 100%);
+  display: grid;
+  gap: 0.9rem;
+  background: linear-gradient(170deg, #fff, #faf4f7);
+}
+
+.login-form .section-title {
+  margin-bottom: 0.3rem;
+}

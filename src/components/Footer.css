@@ -1,0 +1,21 @@
+.footer {
+  border-top: 1px solid var(--color-line);
+  padding: 2.8rem 0;
+  background: linear-gradient(180deg, #fbf6f8, #f7f0f4);
+  color: var(--color-muted);
+}
+
+.footer__inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.footer__inner p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: #5d1733;
+  letter-spacing: 0.4px;
+}

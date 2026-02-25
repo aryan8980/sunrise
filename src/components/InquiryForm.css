@@ -1,0 +1,42 @@
+.inquiry-form {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 880px;
+  width: 100%;
+  margin: 0 auto;
+  background: linear-gradient(165deg, #fff, #fcf7f9);
+}
+
+.inquiry-form label {
+  display: grid;
+  gap: 0.3rem;
+  align-content: start;
+}
+
+.inquiry-form label span {
+  color: #5d1733;
+  font-weight: 700;
+}
+
+.inquiry-form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.inquiry-form__submit {
+  justify-self: center;
+  min-width: 180px;
+  background: #6c1f3a;
+}
+
+.inquiry-form__status {
+  margin: 0;
+  color: #7b5a67;
+}
+
+@media (max-width: 760px) {
+  .inquiry-form__row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,12 @@
+.client-order-form {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+}
+
+.client-stats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  color: var(--color-muted);
+}

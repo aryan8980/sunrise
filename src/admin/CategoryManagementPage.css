@@ -1,0 +1,107 @@
+.category-module {
+  display: grid;
+  gap: 1rem;
+}
+
+.category-module__top {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.category-module__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.category-chip {
+  padding: 0.55rem 0.95rem;
+  border-radius: 14px;
+  background: #eedde4;
+  color: #632338;
+}
+
+.category-chip--active {
+  background: #6c1f3a;
+  color: #fff;
+}
+
+.category-form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.category-form--premium {
+  background: #f7f4f5;
+  border: 1px solid #e7d8dd;
+  box-shadow: none;
+  border-radius: 20px;
+  padding: 1.2rem;
+}
+
+.category-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.category-form label span {
+  color: #4b1f2f;
+  font-weight: 600;
+}
+
+.category-form input {
+  border-radius: 14px;
+  border: 1px solid #e1cfd6;
+  background: #fcfafb;
+  color: #5a2a3a;
+}
+
+.category-form__add {
+  justify-self: start;
+  background: #6c1f3a;
+}
+
+.category-form__status {
+  margin: 0;
+  color: #4b1f2f;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.9rem;
+}
+
+.category-card {
+  border: 1px solid #ead8df;
+  border-radius: 18px;
+  background: #fff;
+  padding: 0.9rem;
+}
+
+.category-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.category-card__head h3 {
+  margin: 0;
+  color: #4b1f2f;
+}
+
+.category-card__head span {
+  color: #875266;
+}
+
+.category-card__count {
+  margin: 0 0 0.75rem;
+  color: #875266;
+}
+
+.category-card__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}

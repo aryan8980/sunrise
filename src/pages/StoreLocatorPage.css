@@ -1,0 +1,35 @@
+.store-locator-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.store-locator-head {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, #fff, #faf4f7);
+  box-shadow: var(--shadow-sm);
+  padding: 1.35rem 1.2rem;
+  text-align: center;
+}
+
+.store-locator-head__eyebrow {
+  margin: 0 0 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.store-locator-head .section-title {
+  margin-bottom: 0.45rem;
+}
+
+.store-locator-head__text {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.store-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}

@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isActiveUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.active != false;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && isActiveUser() && (userRole() == 'owner' || userRole() == 'manager');
+    }
+
+    function isOwner() {
+      return isAuthenticated() && isActiveUser() && userRole() == 'owner';
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewsCount']) &&
+        request.resource.data.viewsCount == resource.data.get('viewsCount', 0) + 1
+      );
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /lookbook/{entryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /inquiries/{inquiryId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow write: if isOwner();
+    }
+
+    match /clients/{clientId} {
+      allow read, write: if isOwner();
+
+      match /orders/{orderId} {
+        allow read, write: if isOwner();
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

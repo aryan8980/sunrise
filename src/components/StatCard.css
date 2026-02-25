@@ -1,0 +1,18 @@
+.stat-card {
+  background: linear-gradient(165deg, #ffffff, #fcf7f9);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card p {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.stat-card h3 {
+  margin: 0.5rem 0 0;
+  font-size: 1.9rem;
+  color: var(--color-accent);
+}

@@ -1,0 +1,23 @@
+.owner-client-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(165deg, #fff, #fcf7f9);
+}
+
+.owner-client-form textarea,
+.owner-client-form button {
+  grid-column: span 2;
+}
+
+@media (max-width: 760px) {
+  .owner-client-form {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-client-form textarea,
+  .owner-client-form button {
+    grid-column: span 1;
+  }
+}
