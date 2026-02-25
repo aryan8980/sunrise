@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import FilterBar from '../components/FilterBar';
 import ProductCard from '../components/ProductCard';
+import { ProductCardSkeleton } from '../components/ProductCardSkeleton';
 import { listCategories } from '../services/categoryService';
 import { listProducts } from '../services/productService';
 import './CatalogPage.css';
@@ -14,6 +15,7 @@ function CatalogPage() {
   const [filterOptions, setFilterOptions] = useState({
     sizes: []
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     listCategories().then(setCategories).catch(console.error);
@@ -23,11 +25,9 @@ function CatalogPage() {
     listProducts()
       .then((allProducts) => {
         const sizeSet = new Set();
-
         allProducts.forEach((product) => {
           (product.sizes || []).forEach((size) => sizeSet.add(size));
         });
-
         setFilterOptions({
           sizes: [...sizeSet].sort()
         });
@@ -36,7 +36,20 @@ function CatalogPage() {
   }, []);
 
   useEffect(() => {
-    listProducts(filters).then(setProducts).catch(console.error);
+    let ignore = false;
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const data = await listProducts(filters);
+        if (!ignore) setProducts(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    fetchProducts();
+    return () => { ignore = true; };
   }, [filters]);
 
   return (
@@ -54,19 +67,23 @@ function CatalogPage() {
           sizes={filterOptions.sizes}
         />
         <p className='catalog-results'>
-          Showing <strong>{products.length}</strong> product{products.length === 1 ? '' : 's'}
+          {loading ? (
+            'Loading...'
+          ) : (
+            <>Showing <strong>{products.length}</strong> product{products.length === 1 ? '' : 's'}</>
+          )}
         </p>
       </div>
 
-      {products.length > 0 ? (
-        <div className='grid catalog-grid'>
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      ) : (
-        <div className='catalog-empty form-card'>No products found for the selected filters.</div>
-      )}
+      <div className='grid catalog-grid'>
+        {loading ? (
+          Array.from({ length: 6 }).map((_, i) => <ProductCardSkeleton key={i} />)
+        ) : products.length > 0 ? (
+          products.map((product) => <ProductCard key={product.id} product={product} />)
+        ) : (
+          <div className='catalog-empty form-card'>No products found for the selected filters.</div>
+        )}
+      </div>
     </section>
   );
 }

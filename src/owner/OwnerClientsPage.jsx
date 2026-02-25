@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { addClient, deleteClient, listClientOrders, listClients, updateClient, getClientStats } from '../services/clientService';
 import { formatCurrency } from '../utils/helpers';
+import toast from 'react-hot-toast';
 import './OwnerClientsPage.css';
 
 const initialClient = {
@@ -18,7 +19,7 @@ function OwnerClientsPage() {
   const [form, setForm] = useState(initialClient);
   const [editingId, setEditingId] = useState(null);
 
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
     const clientRows = await listClients();
     const withStats = await Promise.all(
       clientRows.map(async (client) => {
@@ -27,18 +28,27 @@ function OwnerClientsPage() {
       })
     );
     setClients(withStats);
-  };
+  }, []);
 
   useEffect(() => {
-    loadClients().catch(console.error);
-  }, []);
+    const fetchClients = async () => {
+      try {
+        await loadClients();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchClients();
+  }, [loadClients]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (editingId) {
       await updateClient(editingId, form);
+      toast.success('Client updated.');
     } else {
       await addClient(form);
+      toast.success('Client added.');
     }
     setForm(initialClient);
     setEditingId(null);
@@ -90,7 +100,10 @@ function OwnerClientsPage() {
                     setEditingId(client.id);
                     setForm(client);
                   }}>Edit</button>{' '}
-                  <button className='btn btn--ghost' onClick={() => deleteClient(client.id).then(loadClients)}>
+                  <button className='btn btn--ghost' onClick={() => deleteClient(client.id).then(() => {
+                    toast.success('Client deleted.');
+                    loadClients();
+                  })}>
                     Delete
                   </button>
                 </td>

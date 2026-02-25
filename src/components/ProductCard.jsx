@@ -12,7 +12,7 @@ function ProductCard({ product }) {
 
   return (
     <Link {...linkProps} className='product-card'>
-      <img src={product.images?.[0]} alt={product.name} />
+      <img src={product.images?.[0]} alt={product.name} loading='lazy' />
       <div className='product-card__body'>
         <span className='product-card__chip'>{product.category || 'Category'}</span>
         <h3>{product.name}</h3>

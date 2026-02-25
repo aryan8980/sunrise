@@ -1,0 +1,11 @@
+﻿
+> sunrise@0.0.0 lint
+> eslint .
+
+
+C:\Users\aryan\Desktop\sunrise\src\context\AuthContext.jsx
+  1:25  error  'useContext' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                           no-unused-vars
+  6:14  error  Fast refresh only works when a file only exports components. Move your React context(s) to a separate file  react-refresh/only-export-components
+
+Ô£û 2 problems (2 errors, 0 warnings)
+

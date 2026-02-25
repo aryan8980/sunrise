@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { addCategory, deleteCategory, listCategories, updateCategory } from '../services/categoryService';
 import { listProducts } from '../services/productService';
+import toast from 'react-hot-toast';
 import './CategoryManagementPage.css';
 
 function CategoryManagementPage() {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [name, setName] = useState('');
-  const [status, setStatus] = useState('');
 
   const loadCategories = () => listCategories().then(setCategories).catch(console.error);
   const loadProducts = () => listProducts().then(setProducts).catch(console.error);
@@ -19,20 +19,19 @@ function CategoryManagementPage() {
 
   const handleAdd = async (event) => {
     event.preventDefault();
-    setStatus('');
 
     const trimmed = name.trim();
     if (!trimmed) return;
 
     const exists = categories.some((category) => category.name?.toLowerCase() === trimmed.toLowerCase());
     if (exists) {
-      setStatus('Category already exists.');
+      toast.error('Category already exists.');
       return;
     }
 
     await addCategory({ name: trimmed, order: categories.length + 1 });
     setName('');
-    setStatus('Category added successfully.');
+    toast.success('Category added successfully.');
     loadCategories();
     loadProducts();
   };
@@ -54,7 +53,6 @@ function CategoryManagementPage() {
         <button className='btn category-form__add' type='submit'>
           + Add Category
         </button>
-        {status && <p className='category-form__status'>{status}</p>}
       </form>
 
       <div className='category-grid'>
@@ -67,27 +65,33 @@ function CategoryManagementPage() {
               ).length;
               return (
                 <>
-            <div className='category-card__head'>
-              <h3>{category.name}</h3>
-              <span>#{category.order || '-'}</span>
-            </div>
-            <p className='category-card__count'>{categoryProductCount} products</p>
-            <div className='category-card__actions'>
-              <button
-                className='btn btn--ghost'
-                onClick={() => {
-                  const newName = window.prompt('Rename category', category.name);
-                  if (newName?.trim()) {
-                    updateCategory(category.id, { name: newName.trim() }).then(loadCategories);
-                  }
-                }}
-              >
-                Edit
-              </button>
-              <button className='btn btn--ghost' onClick={() => deleteCategory(category.id).then(loadCategories)}>
-                Delete
-              </button>
-            </div>
+                  <div className='category-card__head'>
+                    <h3>{category.name}</h3>
+                    <span>#{category.order || '-'}</span>
+                  </div>
+                  <p className='category-card__count'>{categoryProductCount} products</p>
+                  <div className='category-card__actions'>
+                    <button
+                      className='btn btn--ghost'
+                      onClick={() => {
+                        const newName = window.prompt('Rename category', category.name);
+                        if (newName?.trim()) {
+                          updateCategory(category.id, { name: newName.trim() }).then(() => {
+                            toast.success('Category renamed.');
+                            loadCategories();
+                          });
+                        }
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button className='btn btn--ghost' onClick={() => deleteCategory(category.id).then(() => {
+                      toast.success('Category deleted.');
+                      loadCategories();
+                    })}>
+                      Delete
+                    </button>
+                  </div>
                 </>
               );
             })()}

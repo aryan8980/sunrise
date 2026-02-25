@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { addProduct, deleteProduct, listProducts, updateProduct } from '../services/productService';
 import { addCategory, listCategories } from '../services/categoryService';
 import { formatCurrency } from '../utils/helpers';
+import toast from 'react-hot-toast';
 import './ProductManagementPage.css';
 
 const initialProduct = {
@@ -19,7 +20,6 @@ function ProductManagementPage() {
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(initialProduct);
   const [editingId, setEditingId] = useState(null);
-  const [status, setStatus] = useState('');
   const [showForm, setShowForm] = useState(false);
 
   const loadProducts = () => listProducts().then(setProducts).catch(console.error);
@@ -32,11 +32,10 @@ function ProductManagementPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setStatus('');
     const resolvedCategory = form.category.trim();
 
     if (!resolvedCategory) {
-      setStatus('Category is required.');
+      toast.error('Category is required.');
       return;
     }
 
@@ -71,7 +70,7 @@ function ProductManagementPage() {
 
     setForm(initialProduct);
     setEditingId(null);
-    setStatus(editingId ? 'Product updated successfully.' : 'Product added successfully.');
+    toast.success(editingId ? 'Product updated successfully.' : 'Product added successfully.');
     setShowForm(false);
     loadProducts();
   };
@@ -87,6 +86,7 @@ function ProductManagementPage() {
     if (!exists) {
       await addCategory({ name: trimmed, order: categories.length + 1 });
       await loadCategories();
+      toast.success('Category added successfully.');
     }
     setForm({ ...form, category: trimmed });
   };
@@ -222,14 +222,13 @@ function ProductManagementPage() {
           <button className='btn' type='submit'>
             {editingId ? 'Update Product' : 'Add Product'}
           </button>
-          {status && <p className='product-form__status'>{status}</p>}
         </form>
       )}
 
       <div className='product-grid'>
         {products.map((product) => (
           <article className='product-tile' key={product.id}>
-            <img src={product.images?.[0]} alt={product.name} />
+            <img src={product.images?.[0]} alt={product.name} loading='lazy' />
             <div className='product-tile__body'>
               <h3>{product.name}</h3>
               <p>{product.category}</p>
@@ -239,7 +238,12 @@ function ProductManagementPage() {
               <button className='btn btn--ghost' onClick={() => handleEdit(product)}>
                 Edit
               </button>
-              <button className='btn btn--ghost' onClick={() => deleteProduct(product.id).then(loadProducts)}>
+              <button className='btn btn--ghost' onClick={() => {
+                deleteProduct(product.id).then(() => {
+                  toast.success('Product deleted.');
+                  loadProducts();
+                })
+              }}>
                 Delete
               </button>
             </div>

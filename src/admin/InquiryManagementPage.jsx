@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { deleteInquiry, listInquiries, updateInquiry } from '../services/inquiryService';
+import toast from 'react-hot-toast';
 import './InquiryManagementPage.css';
 
 const statusOptions = ['pending', 'ongoing', 'done'];
@@ -35,7 +36,10 @@ function InquiryManagementPage() {
                 <select
                   className={`inquiry-status__select inquiry-status__select--${inquiry.status || 'pending'}`}
                   value={inquiry.status || 'pending'}
-                  onChange={(e) => updateInquiry(inquiry.id, { status: e.target.value }).then(loadInquiries)}
+                  onChange={(e) => updateInquiry(inquiry.id, { status: e.target.value }).then(() => {
+                    toast.success('Status updated.');
+                    loadInquiries();
+                  })}
                 >
                   {statusOptions.map((status) => (
                     <option key={status} value={status}>
@@ -47,7 +51,10 @@ function InquiryManagementPage() {
               <a className='btn btn--ghost' href={buildMailUrl(inquiry.email)} target='_blank' rel='noreferrer'>
                 Email
               </a>
-              <button className='btn btn--ghost' onClick={() => deleteInquiry(inquiry.id).then(loadInquiries)}>
+              <button className='btn btn--ghost' onClick={() => deleteInquiry(inquiry.id).then(() => {
+                toast.success('Inquiry deleted.');
+                loadInquiries();
+              })}>
                 Delete
               </button>
             </div>

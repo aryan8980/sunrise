@@ -111,7 +111,7 @@ function ProductDetailPage() {
 
       <div className='product-detail'>
         <div className='product-detail__gallery'>
-          <img src={activeImage} alt={product.name} className='product-detail__main-image' />
+          <img src={activeImage} alt={product.name} className='product-detail__main-image' loading='lazy' />
           {canSlide && (
             <>
               <button type='button' className='product-detail__nav product-detail__nav--left' onClick={goPrev}>
