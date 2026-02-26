@@ -17,9 +17,8 @@ function HeroBanner({ images = [] }) {
     return () => clearInterval(intervalId);
   }, [safeImages]);
 
-  useEffect(() => {
-    if (activeIndex >= safeImages.length) setActiveIndex(0);
-  }, [activeIndex, safeImages.length]);
+  // Ensure activeIndex is always valid during render without a secondary effect
+  const validActiveIndex = activeIndex >= safeImages.length ? 0 : activeIndex;
 
   return (
     <section className='hero'>
@@ -29,7 +28,7 @@ function HeroBanner({ images = [] }) {
             <div
               key={`${image}-${index}`}
               style={{ backgroundImage: `url(${image})` }}
-              className={`hero__slide ${index === activeIndex ? 'hero__slide--active' : ''}`}
+              className={`hero__slide ${index === validActiveIndex ? 'hero__slide--active' : ''}`}
             >
               <img src={image} alt='Sunrise Apparels collection' className='hero__slide-image' />
             </div>
@@ -50,7 +49,7 @@ function HeroBanner({ images = [] }) {
               <button
                 key={index}
                 type='button'
-                className={`hero__dot ${index === activeIndex ? 'hero__dot--active' : ''}`}
+                className={`hero__dot ${index === validActiveIndex ? 'hero__dot--active' : ''}`}
                 onClick={() => setActiveIndex(index)}
                 aria-label={`Go to slide ${index + 1}`}
               />

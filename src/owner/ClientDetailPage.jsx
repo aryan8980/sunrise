@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   addClientOrder,
@@ -8,6 +8,7 @@ import {
   listClientOrders
 } from '../services/clientService';
 import { formatCurrency } from '../utils/helpers';
+import toast from 'react-hot-toast';
 import './ClientDetailPage.css';
 
 const orderInitial = {
@@ -26,16 +27,23 @@ function ClientDetailPage() {
   const [orders, setOrders] = useState([]);
   const [orderForm, setOrderForm] = useState(orderInitial);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const clientData = await getClientById(clientId);
     const orderData = await listClientOrders(clientId);
     setClient(clientData);
     setOrders(orderData);
-  };
+  }, [clientId]);
 
   useEffect(() => {
-    loadData().catch(console.error);
-  }, [clientId]);
+    const fetchData = async () => {
+      try {
+        await loadData();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchData();
+  }, [clientId, loadData]);
 
   if (!client) return <section>Client not found.</section>;
 
@@ -45,6 +53,7 @@ function ClientDetailPage() {
     event.preventDefault();
     await addClientOrder(clientId, orderForm);
     setOrderForm(orderInitial);
+    toast.success('Order added successfully.');
     loadData();
   };
 
@@ -129,7 +138,10 @@ function ClientDetailPage() {
                 <td>{order.paymentMode}</td>
                 <td>{order.deliveryStatus}</td>
                 <td>
-                  <button className='btn btn--ghost' onClick={() => deleteClientOrder(clientId, order.id).then(loadData)}>
+                  <button className='btn btn--ghost' onClick={() => deleteClientOrder(clientId, order.id).then(() => {
+                    toast.success('Order deleted.');
+                    loadData();
+                  })}>
                     Delete
                   </button>
                 </td>

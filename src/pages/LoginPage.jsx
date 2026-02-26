@@ -1,20 +1,19 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { logoutUser } from '../services/authService';
+import toast from 'react-hot-toast';
 import './LoginPage.css';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const { login } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError('');
 
     try {
       const result = await login(email, password);
@@ -24,8 +23,9 @@ function LoginPage() {
       }
       const next = location.state?.from?.pathname || '/admin';
       navigate(next, { replace: true });
+      toast.success('Successfully logged in');
     } catch (err) {
-      setError('Invalid credentials or unauthorized user.');
+      toast.error('Invalid credentials or unauthorized user.');
       console.error(err);
     }
   };
@@ -45,7 +45,6 @@ function LoginPage() {
         <button className='btn' type='submit'>
           Sign In
         </button>
-        {error && <p className='status'>{error}</p>}
       </form>
     </section>
   );

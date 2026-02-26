@@ -5,6 +5,7 @@ import {
   listAdminUsers,
   updateManagedUser
 } from '../services/authService';
+import toast from 'react-hot-toast';
 import './OwnerUserManagementPage.css';
 
 const initialForm = {
@@ -17,7 +18,6 @@ const initialForm = {
 function OwnerUserManagementPage() {
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(initialForm);
-  const [status, setStatus] = useState('');
 
   const loadUsers = () => listAdminUsers().then(setUsers).catch(console.error);
 
@@ -27,26 +27,27 @@ function OwnerUserManagementPage() {
 
   const handleCreate = async (event) => {
     event.preventDefault();
-    setStatus('');
 
     try {
       await createAdminUser(form);
       setForm(initialForm);
-      setStatus('User created successfully.');
+      toast.success('User created successfully.');
       loadUsers();
     } catch (error) {
-      setStatus(error?.message || 'Failed to create user.');
+      toast.error(error?.message || 'Failed to create user.');
       console.error(error);
     }
   };
 
   const toggleAccess = async (user) => {
     await updateManagedUser(user.id, { active: user.active === false });
+    toast.success(`User access ${user.active === false ? 'enabled' : 'disabled'}.`);
     loadUsers();
   };
 
   const changeRole = async (user, role) => {
     await updateManagedUser(user.id, { role });
+    toast.success(`Role changed to ${role}`);
     loadUsers();
   };
 
@@ -81,7 +82,6 @@ function OwnerUserManagementPage() {
           <option value='owner'>Owner</option>
         </select>
         <button className='btn' type='submit'>Create User</button>
-        {status && <p>{status}</p>}
       </form>
 
       <div className='table-wrap'>
@@ -111,7 +111,10 @@ function OwnerUserManagementPage() {
                   <button className='btn btn--ghost' onClick={() => toggleAccess(user)}>
                     {user.active === false ? 'Enable' : 'Disable'}
                   </button>{' '}
-                  <button className='btn btn--ghost' onClick={() => deleteManagedUserDoc(user.id).then(loadUsers)}>
+                  <button className='btn btn--ghost' onClick={() => deleteManagedUserDoc(user.id).then(() => {
+                    toast.success('User document deleted');
+                    loadUsers();
+                  })}>
                     Delete Doc
                   </button>
                 </td>
