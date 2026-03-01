@@ -20,8 +20,7 @@ function ContactPage() {
         </a>
         <div className='contact-details'>
           <p><strong>Phone:</strong> +91 98814 40099</p>
-          <p><strong>Email:</strong> hello@sunriseapparels.com</p>
-          <p><strong>Address:</strong> 315 Broadway, New York, NY 10007</p>
+          <p><strong>Address:</strong> Shop No. 2, Opp. Kala Mandir Apartment, Sai Vasan Shah Bazar, Ulhasnagar – 421005</p>
           <p><strong>Hours:</strong> Mon-Sat, 10:00 AM - 8:00 PM</p>
         </div>
       </section>

@@ -4,10 +4,10 @@ import './StoreLocatorPage.css';
 const stores = [
   {
     name: 'Sunrise Studio - Manhattan',
-    address: '315 Broadway, New York, NY 10007',
+    address: 'Shop No. 2, Opp. Kala Mandir Apartment, Sai Vasan Shah Bazar, Ulhasnagar – 421005',
     hours: 'Mon-Sat: 10:00 AM - 8:00 PM',
     contact: '+91 98814 40099',
-    mapEmbed: 'https://www.google.com/maps?q=315+Broadway+New+York+NY+10007&output=embed'
+    mapEmbed: 'https://www.google.com/maps?q=Shop+No.+2,+Opp.+Kala+Mandir+Apartment,+Sai+Vasan+Shah+Bazar,+Ulhasnagar,+Maharashtra+421005,+India&output=embed'
   }
 ];
 
@@ -17,9 +17,6 @@ function StoreLocatorPage() {
       <div className='store-locator-head'>
         <p className='store-locator-head__eyebrow'>Sunrise Apparels</p>
         <h1 className='section-title'>Store Locator</h1>
-        <p className='store-locator-head__text'>
-          Find our flagship retail spaces, explore store timings, and connect directly with each location.
-        </p>
       </div>
       <div className='grid store-grid'>
         {stores.map((store) => (
