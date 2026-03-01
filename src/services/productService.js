@@ -1,7 +1,38 @@
 import { collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, where, addDoc, updateDoc, increment } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase';
 
 const productsRef = collection(db, 'products');
+
+export async function uploadProductImage(file) {
+  try {
+    const timestamp = Date.now();
+    const fileName = `${timestamp}_${file.name}`;
+    const storageRef = ref(storage, `products/${fileName}`);
+    
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+}
+
+export async function uploadMultipleProductImages(files) {
+  try {
+    const urls = [];
+    for (const file of files) {
+      const url = await uploadProductImage(file);
+      urls.push(url);
+    }
+    return urls;
+  } catch (error) {
+    console.error('Error uploading multiple images:', error);
+    throw error;
+  }
+}
 
 export async function listProducts(filters = {}) {
   let q = query(productsRef, orderBy('createdAt', 'desc'));

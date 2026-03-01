@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { addProduct, deleteProduct, listProducts, updateProduct } from '../services/productService';
+import { addProduct, deleteProduct, listProducts, updateProduct, uploadMultipleProductImages } from '../services/productService';
 import { addCategory, listCategories } from '../services/categoryService';
 import { formatCurrency } from '../utils/helpers';
 import toast from 'react-hot-toast';
@@ -11,7 +11,7 @@ const initialProduct = {
   description: '',
   sizes: 'S,M,L',
   available: true,
-  images: '',
+  images: [],
   price: 0
 };
 
@@ -19,8 +19,11 @@ function ProductManagementPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(initialProduct);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const loadProducts = () => listProducts().then(setProducts).catch(console.error);
   const loadCategories = () => listCategories().then(setCategories).catch(console.error);
@@ -30,8 +33,35 @@ function ProductManagementPage() {
     loadCategories();
   }, []);
 
+  const handleImageSelect = (event) => {
+    const files = Array.from(event.target.files || []);
+    setSelectedFiles(files);
+
+    // Create previews
+    const previews = files.map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(previews).then(setImagePreviews);
+  };
+
+  const removeImagePreview = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!editingId && selectedFiles.length === 0) {
+      toast.error('Please select at least one image.');
+      return;
+    }
+
     const resolvedCategory = form.category.trim();
 
     if (!resolvedCategory) {
@@ -51,28 +81,39 @@ function ProductManagementPage() {
       await loadCategories();
     }
 
-    const payload = {
-      ...form,
-      category: resolvedCategory,
-      sizes: form.sizes.split(',').map((size) => size.trim()),
-      images: form.images
-        .split('\n')
-        .map((url) => url.trim())
-        .filter(Boolean),
-      price: Number(form.price)
-    };
+    setUploading(true);
+    try {
+      const imageUrls = selectedFiles.length > 0
+        ? await uploadMultipleProductImages(selectedFiles)
+        : (Array.isArray(form.images) ? form.images : []);
 
-    if (editingId) {
-      await updateProduct(editingId, payload);
-    } else {
-      await addProduct(payload);
+      const payload = {
+        ...form,
+        category: resolvedCategory,
+        sizes: form.sizes.split(',').map((size) => size.trim()),
+        images: imageUrls,
+        price: Number(form.price)
+      };
+
+      if (editingId) {
+        await updateProduct(editingId, payload);
+      } else {
+        await addProduct(payload);
+      }
+
+      setForm(initialProduct);
+      setSelectedFiles([]);
+      setImagePreviews([]);
+      setEditingId(null);
+      toast.success(editingId ? 'Product updated successfully.' : 'Product added successfully.');
+      setShowForm(false);
+      loadProducts();
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      toast.error('Failed to upload images. Please try again.');
+    } finally {
+      setUploading(false);
     }
-
-    setForm(initialProduct);
-    setEditingId(null);
-    toast.success(editingId ? 'Product updated successfully.' : 'Product added successfully.');
-    setShowForm(false);
-    loadProducts();
   };
 
   const handleQuickAddCategory = async () => {
@@ -96,9 +137,11 @@ function ProductManagementPage() {
     setShowForm(true);
     setForm({
       ...product,
-      sizes: (product.sizes || []).join(','),
-      images: (product.images || []).join('\n')
+      sizes: (product.sizes || []).join(',')
     });
+    // Set existing images as previews
+    setSelectedFiles([]);
+    setImagePreviews(product.images || []);
   };
 
   return (
@@ -117,6 +160,8 @@ function ProductManagementPage() {
             if (showForm) {
               setEditingId(null);
               setForm(initialProduct);
+              setSelectedFiles([]);
+              setImagePreviews([]);
             }
           }}
         >
@@ -180,15 +225,34 @@ function ProductManagementPage() {
           </label>
 
           <label className='product-form__field'>
-            <span>Image URLs * (one per line)</span>
-            <textarea
-              placeholder={'https://example.com/image1.jpg\nhttps://example.com/image2.jpg'}
-              value={form.images}
-              onChange={(e) => setForm({ ...form, images: e.target.value })}
-              rows='4'
-              required
+            <span>Product Images *</span>
+            <input
+              type='file'
+              multiple
+              accept='image/*'
+              onChange={handleImageSelect}
             />
           </label>
+
+          {imagePreviews.length > 0 && (
+            <div className='product-form__field'>
+              <span>Image Previews</span>
+              <div className='product-form__preview-grid'>
+                {imagePreviews.map((preview, index) => (
+                  <div key={index} className='product-form__preview-item'>
+                    <img src={preview} alt={`Preview ${index}`} />
+                    <button
+                      type='button'
+                      className='btn btn--ghost product-form__remove-btn'
+                      onClick={() => removeImagePreview(index)}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className='product-form__extras'>
             <label>
@@ -219,8 +283,8 @@ function ProductManagementPage() {
             </label>
           </div>
 
-          <button className='btn' type='submit'>
-            {editingId ? 'Update Product' : 'Add Product'}
+          <button className='btn' type='submit' disabled={uploading}>
+            {uploading ? 'Uploading...' : editingId ? 'Update Product' : 'Add Product'}
           </button>
         </form>
       )}
