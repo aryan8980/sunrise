@@ -1,4 +1,4 @@
-import { collection, getCountFromServer, getDocs, limit, orderBy, query } from 'firebase/firestore';
+import { collection, getCountFromServer, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
 function toMillis(value) {
@@ -66,17 +66,11 @@ export async function getDashboardStats() {
   const productsCountSnap = await getCountFromServer(collection(db, 'products'));
   const inquiriesCountSnap = await getCountFromServer(collection(db, 'inquiries'));
 
-  const mostViewedSnap = await getDocs(
-    query(collection(db, 'products'), orderBy('viewsCount', 'desc'), limit(5))
-  );
-
-  const mostViewedProducts = mostViewedSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
   const monthlyAnalytics = await getMonthlyAnalytics();
 
   return {
     totalProducts: productsCountSnap.data().count,
     totalInquiries: inquiriesCountSnap.data().count,
-    mostViewedProducts,
     monthlyAnalytics
   };
 }

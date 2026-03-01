@@ -16,6 +16,8 @@ function OwnerClientsPage() {
   const [clients, setClients] = useState([]);
   const [form, setForm] = useState(initialClient);
   const [editingId, setEditingId] = useState(null);
+  const [viewingOrders, setViewingOrders] = useState(null);
+  const [orders, setOrders] = useState([]);
 
   const loadClients = useCallback(async () => {
     const clientRows = await listClients();
@@ -53,6 +55,24 @@ function OwnerClientsPage() {
     loadClients();
   };
 
+  const handleViewOrders = async (client) => {
+    try {
+      const clientOrders = await listClientOrders(client.id);
+      setOrders(clientOrders);
+      setViewingOrders(client);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to load orders.');
+    }
+  };
+
+  const calculateOrdersSummary = () => {
+    const totalOrders = orders.length;
+    const totalAmount = orders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+    const avgOrderValue = totalOrders > 0 ? totalAmount / totalOrders : 0;
+    return { totalOrders, totalAmount, avgOrderValue };
+  };
+
   return (
     <section>
       <h1 className='section-title'>Owner Client Management</h1>
@@ -85,6 +105,7 @@ function OwnerClientsPage() {
                 <td>{formatCurrency(client.totalPurchaseValue)}</td>
                 <td>{client.lastPurchaseDate || '-'}</td>
                 <td>
+                  <button className='btn btn--ghost' onClick={() => handleViewOrders(client)}>Orders</button>{' '}
                   <Link to={`/admin/clients/${client.id}`}>View</Link>{' '}
                   <button className='btn btn--ghost' onClick={() => {
                     setEditingId(client.id);
@@ -102,6 +123,67 @@ function OwnerClientsPage() {
           </tbody>
         </table>
       </div>
+
+      {viewingOrders && (
+        <div className='orders-modal' onClick={() => setViewingOrders(null)}>
+          <div className='orders-modal-content' onClick={(e) => e.stopPropagation()}>
+            <div className='orders-modal-header'>
+              <h2>{viewingOrders.name} - Orders & Summary</h2>
+              <button className='btn btn--ghost' onClick={() => setViewingOrders(null)}>✕</button>
+            </div>
+
+            <div className='orders-summary'>
+              <h3>Summary</h3>
+              <div className='summary-stats'>
+                <div className='summary-stat'>
+                  <span className='summary-label'>Total Orders:</span>
+                  <span className='summary-value'>{calculateOrdersSummary().totalOrders}</span>
+                </div>
+                <div className='summary-stat'>
+                  <span className='summary-label'>Total Amount:</span>
+                  <span className='summary-value'>{formatCurrency(calculateOrdersSummary().totalAmount)}</span>
+                </div>
+                <div className='summary-stat'>
+                  <span className='summary-label'>Avg Order Value:</span>
+                  <span className='summary-value'>{formatCurrency(calculateOrdersSummary().avgOrderValue)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className='orders-list'>
+              <h3>Order History</h3>
+              {orders.length === 0 ? (
+                <p className='no-orders'>No orders yet</p>
+              ) : (
+                <div className='table-wrap'>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.map((order) => (
+                        <tr key={order.id}>
+                          <td>{order.orderDate || '-'}</td>
+                          <td>{order.productName || '-'}</td>
+                          <td>{order.quantity || 0}</td>
+                          <td>{formatCurrency(order.price || 0)}</td>
+                          <td>{formatCurrency(order.totalAmount || 0)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

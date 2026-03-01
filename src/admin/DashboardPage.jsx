@@ -7,7 +7,6 @@ function DashboardPage() {
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalInquiries: 0,
-    mostViewedProducts: [],
     monthlyAnalytics: []
   });
 
@@ -21,17 +20,6 @@ function DashboardPage() {
       <div className='dashboard-stats'>
         <StatCard label='Total Products' value={stats.totalProducts} />
         <StatCard label='Total Inquiries' value={stats.totalInquiries} />
-      </div>
-
-      <div className='form-card'>
-        <h3>Most Viewed Products</h3>
-        <ul>
-          {stats.mostViewedProducts.map((product) => (
-            <li key={product.id}>
-              {product.name} ({product.viewsCount || 0} views)
-            </li>
-          ))}
-        </ul>
       </div>
 
       <div className='form-card'>
