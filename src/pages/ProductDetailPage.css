@@ -64,6 +64,42 @@
   font-weight: 700;
 }
 
+.product-detail__colors {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.colors-label {
+  font-weight: 600;
+  color: var(--color-accent);
+  font-size: 0.95rem;
+}
+
+.colors-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.color-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #f5e6eb, #faf2f5);
+  color: #8b3250;
+  border: 1.5px solid #d4c5cc;
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.color-badge:hover {
+  background: linear-gradient(135deg, #ead4e3, #f5e6eb);
+  border-color: #8b3250;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 50, 80, 0.15);
+}
+
 .product-detail__title {
   margin-bottom: 0.1rem;
 }

@@ -1,0 +1,227 @@
+.order-management-page {
+  padding: 2rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.order-form {
+  margin-bottom: 2rem;
+  padding: 2rem;
+}
+
+.order-form h3 {
+  margin-bottom: 2rem;
+  color: var(--color-primary);
+  font-size: 1.3rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--color-gray-light);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-grid input:focus,
+.form-grid select:focus,
+.form-grid textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(139, 50, 80, 0.1);
+}
+
+.disabled-input {
+  background-color: var(--color-gray-lightest);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fcf7f9 100%);
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(139, 50, 80, 0.1);
+}
+
+.summary-card h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.summary-card .summary-value {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.filters-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filters-section .search-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 0.75rem;
+  border: 1px solid var(--color-gray-light);
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.filters-section select {
+  padding: 0.75rem;
+  border: 1px solid var(--color-gray-light);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background: white;
+  cursor: pointer;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--color-gray-light);
+}
+
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-wrap th {
+  background: linear-gradient(135deg, #6b2e49 0%, #5a2340 100%);
+  padding: 1.2rem;
+  text-align: left;
+  font-weight: 700;
+  color: white;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  text-transform: capitalize;
+}
+
+.table-wrap td {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--color-gray-light);
+  color: var(--color-text);
+}
+
+.table-wrap tbody tr {
+  transition: all 0.2s ease;
+}
+
+.table-wrap tbody tr:nth-child(even) {
+  background: rgba(139, 50, 80, 0.02);
+}
+
+.table-wrap tbody tr:hover {
+  background: rgba(139, 50, 80, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(139, 50, 80, 0.1);
+}
+
+.table-wrap td strong {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.btn--small {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters-section {
+    flex-direction: column;
+  }
+  
+  .filters-section .search-input {
+    width: 100%;
+  }
+}

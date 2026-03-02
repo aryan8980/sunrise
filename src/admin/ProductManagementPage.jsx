@@ -10,6 +10,7 @@ const initialProduct = {
   category: '',
   description: '',
   sizes: 'S,M,L',
+  colors: '',
   available: true,
   images: [],
   price: 0
@@ -91,6 +92,7 @@ function ProductManagementPage() {
         ...form,
         category: resolvedCategory,
         sizes: form.sizes.split(',').map((size) => size.trim()),
+        colors: form.colors.split(',').map((color) => color.trim()).filter(c => c),
         images: imageUrls,
         price: Number(form.price)
       };
@@ -137,7 +139,8 @@ function ProductManagementPage() {
     setShowForm(true);
     setForm({
       ...product,
-      sizes: (product.sizes || []).join(',')
+      sizes: (product.sizes || []).join(','),
+      colors: (product.colors || []).join(',')
     });
     // Set existing images as previews
     setSelectedFiles([]);
@@ -211,6 +214,16 @@ function ProductManagementPage() {
               onChange={(e) => setForm({ ...form, price: e.target.value })}
               required
             />
+          </label>
+
+          <label className='product-form__field'>
+            <span>Product Color(s)</span>
+            <input
+              placeholder='e.g., Red, Blue, Green, Black'
+              value={form.colors}
+              onChange={(e) => setForm({ ...form, colors: e.target.value })}
+            />
+            <small style={{ color: '#875266', fontSize: '0.85rem' }}>Separate multiple colors with commas</small>
           </label>
 
           <label className='product-form__field'>
@@ -292,7 +305,18 @@ function ProductManagementPage() {
       <div className='product-grid'>
         {products.map((product) => (
           <article className='product-tile' key={product.id}>
-            <img src={product.images?.[0]} alt={product.name} loading='lazy' />
+            <div className='product-tile__image-wrap'>
+              <img src={product.images?.[0]} alt={product.name} loading='lazy' />
+              {product.colors && product.colors.length > 0 && (
+                <div className='product-colors-badges'>
+                  {product.colors.map((color, idx) => (
+                    <div key={idx} className='product-color-badge' title={color}>
+                      {color}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className='product-tile__body'>
               <h3>{product.name}</h3>
               <p>{product.category}</p>

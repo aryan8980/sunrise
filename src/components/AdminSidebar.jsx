@@ -18,6 +18,7 @@ function AdminSidebar() {
         </>
         {isOwner && (
           <>
+            <NavLink to='/admin/orders'>Orders</NavLink>
             <NavLink to='/admin/clients'>Clients</NavLink>
             <NavLink to='/admin/users'>Users</NavLink>
           </>

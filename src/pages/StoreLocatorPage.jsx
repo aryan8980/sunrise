@@ -3,9 +3,9 @@ import './StoreLocatorPage.css';
 
 const stores = [
   {
-    name: 'Sunrise Studio - Manhattan',
+    name: 'Sunrise Apparels',
     address: 'Shop No. 2, Opp. Kala Mandir Apartment, Sai Vasan Shah Bazar, Ulhasnagar – 421005',
-    hours: 'Mon-Sat: 10:00 AM - 8:00 PM',
+    hours: 'Tue - Sun: 10:00 AM - 8:00 PM',
     contact: '+91 98814 40099',
     mapEmbed: 'https://www.google.com/maps?q=Shop+No.+2,+Opp.+Kala+Mandir+Apartment,+Sai+Vasan+Shah+Bazar,+Ulhasnagar,+Maharashtra+421005,+India&output=embed'
   }

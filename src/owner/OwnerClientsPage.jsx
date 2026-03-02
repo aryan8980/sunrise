@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 import { addClient, deleteClient, listClientOrders, listClients, updateClient, getClientStats } from '../services/clientService';
 import { formatCurrency } from '../utils/helpers';
@@ -75,7 +74,7 @@ function OwnerClientsPage() {
 
   return (
     <section>
-      <h1 className='section-title'>Owner Client Management</h1>
+      <h1 className='section-title'>Client Management</h1>
       <form className='form-card owner-client-form' onSubmit={handleSubmit}>
         <input placeholder='Name' value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         <input placeholder='Phone' value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
@@ -106,7 +105,6 @@ function OwnerClientsPage() {
                 <td>{client.lastPurchaseDate || '-'}</td>
                 <td>
                   <button className='btn btn--ghost' onClick={() => handleViewOrders(client)}>Orders</button>{' '}
-                  <Link to={`/admin/clients/${client.id}`}>View</Link>{' '}
                   <button className='btn btn--ghost' onClick={() => {
                     setEditingId(client.id);
                     setForm(client);

@@ -126,6 +126,18 @@ function ProductDetailPage() {
 
         <div className='product-detail__content'>
           <span className='product-detail__chip'>{product.category || 'Category'}</span>
+          
+          {product.colors && product.colors.length > 0 && (
+            <div className='product-detail__colors'>
+              <span className='colors-label'>Available Colors:</span>
+              <div className='colors-list'>
+                {product.colors.map((color, idx) => (
+                  <span key={idx} className='color-badge'>{color}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <h1 className='section-title product-detail__title'>{product.name}</h1>
           <p className='product-detail__price'>{priceLabel}</p>
           <p className='product-detail__desc'>{product.description}</p>
@@ -134,18 +146,6 @@ function ProductDetailPage() {
             Want to Order? Chat on WhatsApp
           </a>
           <p className='product-detail__note'>Click above to start a conversation and place your order.</p>
-
-          <div className='product-detail__divider' />
-          <ul className='product-detail__highlights'>
-            <li>
-              <strong>Handmade with Care</strong>
-              <span>Each piece is crafted by hand with premium materials.</span>
-            </li>
-            <li>
-              <strong>Made to Order</strong>
-              <span>Orders are prepared carefully with quality-first attention.</span>
-            </li>
-          </ul>
 
           <p className={product.available ? 'status status--available' : 'status'}>
             {product.available ? 'In Stock' : 'Out of Stock'}

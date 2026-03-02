@@ -16,6 +16,7 @@ import DashboardPage from './admin/DashboardPage';
 import ProductManagementPage from './admin/ProductManagementPage';
 import CategoryManagementPage from './admin/CategoryManagementPage';
 import InquiryManagementPage from './admin/InquiryManagementPage';
+import OrderManagementPage from './admin/OrderManagementPage';
 import OwnerClientsPage from './owner/OwnerClientsPage';
 import ClientDetailPage from './owner/ClientDetailPage';
 import OwnerUserManagementPage from './owner/OwnerUserManagementPage';
@@ -45,6 +46,7 @@ function App() {
               <Route path='categories' element={<CategoryManagementPage />} />
               <Route path='inquiries' element={<InquiryManagementPage />} />
               <Route element={<RoleRoute allowedRoles={['owner']} />}>
+                <Route path='orders' element={<OrderManagementPage />} />
                 <Route path='clients' element={<OwnerClientsPage />} />
                 <Route path='clients/:clientId' element={<ClientDetailPage />} />
                 <Route path='users' element={<OwnerUserManagementPage />} />

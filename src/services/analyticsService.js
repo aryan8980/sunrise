@@ -62,15 +62,108 @@ async function getMonthlyAnalytics() {
   }));
 }
 
-export async function getDashboardStats() {
-  const productsCountSnap = await getCountFromServer(collection(db, 'products'));
-  const inquiriesCountSnap = await getCountFromServer(collection(db, 'inquiries'));
+async function getMonthlyOrderStats() {
+  const clientsSnap = await getDocs(collection(db, 'clients'));
+  const monthKeys = getRecentMonthKeys(6);
+  const monthMap = Object.fromEntries(
+    monthKeys.map((month) => [month, { month, orders: 0, revenue: 0 }])
+  );
 
-  const monthlyAnalytics = await getMonthlyAnalytics();
+  for (const clientDoc of clientsSnap.docs) {
+    const ordersSnap = await getDocs(collection(db, 'clients', clientDoc.id, 'orders'));
+    ordersSnap.docs.forEach((orderDoc) => {
+      const order = orderDoc.data();
+      if (order.orderDate) {
+        const key = formatMonthKey(new Date(order.orderDate));
+        if (monthMap[key]) {
+          monthMap[key].orders += 1;
+          monthMap[key].revenue += Number(order.totalAmount || 0);
+        }
+      }
+    });
+  }
+
+  return monthKeys.map((key) => ({
+    ...monthMap[key],
+    label: formatMonthLabel(key)
+  }));
+}
+
+async function getInquiryStatusBreakdown() {
+  const inquiriesSnap = await getDocs(collection(db, 'inquiries'));
+  const breakdown = { pending: 0, ongoing: 0, done: 0 };
+
+  inquiriesSnap.docs.forEach((d) => {
+    const status = d.data().status || 'pending';
+    if (breakdown.hasOwnProperty(status)) {
+      breakdown[status] += 1;
+    }
+  });
+
+  return breakdown;
+}
+
+async function getProductCategorySummary() {
+  const productsSnap = await getDocs(collection(db, 'products'));
+  const categoryMap = {};
+
+  productsSnap.docs.forEach((d) => {
+    const category = d.data().category || 'Uncategorized';
+    categoryMap[category] = (categoryMap[category] || 0) + 1;
+  });
+
+  return Object.entries(categoryMap).map(([name, count]) => ({
+    name,
+    count
+  }));
+}
+
+async function getTopProducts() {
+  const clientsSnap = await getDocs(collection(db, 'clients'));
+  const productMap = {};
+
+  for (const clientDoc of clientsSnap.docs) {
+    const ordersSnap = await getDocs(collection(db, 'clients', clientDoc.id, 'orders'));
+    ordersSnap.docs.forEach((orderDoc) => {
+      const order = orderDoc.data();
+      const productName = order.productName || 'Unknown';
+      if (!productMap[productName]) {
+        productMap[productName] = { name: productName, orders: 0, revenue: 0 };
+      }
+      productMap[productName].orders += 1;
+      productMap[productName].revenue += Number(order.totalAmount || 0);
+    });
+  }
+
+  return Object.values(productMap)
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5);
+}
+
+export async function getDashboardStats() {
+  const [productsCountSnap, inquiriesCountSnap, monthlyAnalytics, monthlyOrders, inquiryBreakdown, productCategories, topProducts] = await Promise.all([
+    getCountFromServer(collection(db, 'products')),
+    getCountFromServer(collection(db, 'inquiries')),
+    getMonthlyAnalytics(),
+    getMonthlyOrderStats(),
+    getInquiryStatusBreakdown(),
+    getProductCategorySummary(),
+    getTopProducts()
+  ]);
+
+  // Calculate total orders and revenue
+  const totalOrders = monthlyOrders.reduce((sum, m) => sum + m.orders, 0);
+  const totalRevenue = monthlyOrders.reduce((sum, m) => sum + m.revenue, 0);
 
   return {
     totalProducts: productsCountSnap.data().count,
     totalInquiries: inquiriesCountSnap.data().count,
-    monthlyAnalytics
+    totalOrders,
+    totalRevenue,
+    monthlyAnalytics,
+    monthlyOrders,
+    inquiryBreakdown,
+    productCategories,
+    topProducts
   };
 }

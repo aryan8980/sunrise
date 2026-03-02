@@ -1,8 +1,127 @@
+.dashboard-page {
+  padding-bottom: 2rem;
+}
+
 .dashboard-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.chart-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.chart-card h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.inquiry-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.inquiry-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.stat-badge.pending {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.stat-badge.ongoing {
+  background: linear-gradient(135deg, #ffc107, #ffa000);
+}
+
+.stat-badge.done {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+.inquiry-stat span:last-child {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.top-products-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.top-products-section h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.top-products-section .table-wrap {
+  margin-top: 1rem;
+}
+
+.top-products-section table {
+  width: 100%;
+}
+
+.top-products-section tbody tr:hover {
+  background-color: rgba(139, 50, 80, 0.03);
+}
+
+.top-products-section td:first-child {
+  font-size: 1.1rem;
+  color: var(--color-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-stats {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
 }
 
 .dashboard-stats + .form-card,

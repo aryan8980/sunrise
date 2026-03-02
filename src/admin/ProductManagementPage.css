@@ -155,13 +155,6 @@
   padding: 0.7rem;
 }
 
-.product-tile img {
-  width: 100%;
-  height: 210px;
-  object-fit: cover;
-  border-radius: 14px;
-}
-
 .product-tile__body {
   padding: 0.7rem 0.3rem;
 }
@@ -239,4 +232,65 @@
 
 .product-form__remove-btn:hover {
   background: rgba(192, 0, 0, 1) !important;
+}
+
+.product-form__color-input {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.product-form__color-input input[type='color'] {
+  width: 80px;
+  height: 54px;
+  border-radius: 10px;
+  border: 2px solid #e1cfd6;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.product-form__color-input .color-display {
+  font-size: 0.95rem;
+  color: #5a2a3a;
+  font-weight: 600;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+
+.product-tile__image-wrap {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.product-tile img {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.product-colors-badges {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 140px;
+  justify-content: flex-end;
+}
+
+.product-color-badge {
+  background: rgba(255, 255, 255, 0.95);
+  color: #5a2a3a;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(139, 50, 80, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+  cursor: default;
 }
