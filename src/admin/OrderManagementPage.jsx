@@ -398,6 +398,18 @@ function OrderManagementPage() {
     }
   };
 
+  const handleMarkCompleted = async (clientId, orderId, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+      await updateClientOrder(clientId, orderId, { status: newStatus });
+      toast.success(`Order marked as ${newStatus}.`);
+      loadData();
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to update order status.');
+    }
+  };
+
   // Filter orders
   const filteredOrders = allOrders.filter(order => {
     const matchesSearch = 
@@ -701,13 +713,14 @@ function OrderManagementPage() {
               <th>Discount</th>
               <th>Total</th>
               <th>Payment</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan='11' style={{ textAlign: 'center' }}>
+                <td colSpan='12' style={{ textAlign: 'center' }}>
                   No orders found
                 </td>
               </tr>
@@ -767,18 +780,38 @@ function OrderManagementPage() {
                       <td><strong>{formatCurrency(order.totalAmount || 0)}</strong></td>
                       <td>{order.paymentMode || '-'}</td>
                       <td>
-                        <button 
-                          className='btn btn--ghost btn--small' 
-                          onClick={() => handleEditOrder(order)}
-                        >
-                          Edit
-                        </button>
-                        <button 
-                          className='btn btn--ghost btn--small' 
-                          onClick={() => handleDeleteOrder(order.clientId, order.id)}
-                        >
-                          Delete
-                        </button>
+                        <span style={{
+                          padding: '0.4rem 0.8rem',
+                          borderRadius: '20px',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          backgroundColor: order.status === 'completed' ? '#d4edda' : '#fff3cd',
+                          color: order.status === 'completed' ? '#155724' : '#856404'
+                        }}>
+                          {order.status === 'completed' ? '✓ Completed' : 'Pending'}
+                        </span>
+                      </td>
+                      <td className='actions-cell'>
+                        <div className='order-actions'>
+                          <button 
+                            className='btn btn--ghost btn--small' 
+                            onClick={() => handleEditOrder(order)}
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            className='btn btn--ghost btn--small' 
+                            onClick={() => handleMarkCompleted(order.clientId, order.id, order.status)}
+                          >
+                            {order.status === 'completed' ? 'Mark Pending' : 'Mark Done'}
+                          </button>
+                          <button 
+                            className='btn btn--ghost btn--small' 
+                            onClick={() => handleDeleteOrder(order.clientId, order.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                     
@@ -790,7 +823,7 @@ function OrderManagementPage() {
                           backgroundColor: '#f9f5f7'
                         }}
                       >
-                        <td colSpan='11' style={{ padding: '1rem' }}>
+                        <td colSpan='12' style={{ padding: '1rem' }}>
                           <div style={{ paddingLeft: '1rem' }}>
                             <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--color-primary)' }}>
                               Products in this Order:

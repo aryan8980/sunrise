@@ -193,6 +193,23 @@
   transition: all 0.2s ease;
 }
 
+.actions-cell {
+  min-width: 140px;
+}
+
+.order-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.order-actions .btn--small {
+  min-width: 108px;
+  text-align: center;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .page-header {
     flex-direction: column;

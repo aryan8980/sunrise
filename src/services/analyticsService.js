@@ -126,12 +126,35 @@ async function getTopProducts() {
     const ordersSnap = await getDocs(collection(db, 'clients', clientDoc.id, 'orders'));
     ordersSnap.docs.forEach((orderDoc) => {
       const order = orderDoc.data();
-      const productName = order.productName || 'Unknown';
-      if (!productMap[productName]) {
-        productMap[productName] = { name: productName, orders: 0, revenue: 0 };
+
+      if (Array.isArray(order.lineItems) && order.lineItems.length > 0) {
+        const seenProductsInOrder = new Set();
+
+        order.lineItems.forEach((item) => {
+          const productName = item?.productName || 'Unknown';
+          const quantity = Number(item?.quantity || 0);
+          const price = Number(item?.price || 0);
+          const lineTotal = Number(item?.lineTotal || quantity * price);
+
+          if (!productMap[productName]) {
+            productMap[productName] = { name: productName, orders: 0, revenue: 0 };
+          }
+
+          if (!seenProductsInOrder.has(productName)) {
+            productMap[productName].orders += 1;
+            seenProductsInOrder.add(productName);
+          }
+
+          productMap[productName].revenue += lineTotal;
+        });
+      } else {
+        const productName = order.productName || 'Unknown';
+        if (!productMap[productName]) {
+          productMap[productName] = { name: productName, orders: 0, revenue: 0 };
+        }
+        productMap[productName].orders += 1;
+        productMap[productName].revenue += Number(order.totalAmount || 0);
       }
-      productMap[productName].orders += 1;
-      productMap[productName].revenue += Number(order.totalAmount || 0);
     });
   }
 

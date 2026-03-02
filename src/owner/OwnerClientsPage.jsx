@@ -158,22 +158,41 @@ function OwnerClientsPage() {
                     <thead>
                       <tr>
                         <th>Date</th>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
+                        <th>Products</th>
+                        <th>Total Items</th>
+                        <th>Discount</th>
                         <th>Total</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {orders.map((order) => (
-                        <tr key={order.id}>
-                          <td>{order.orderDate || '-'}</td>
-                          <td>{order.productName || '-'}</td>
-                          <td>{order.quantity || 0}</td>
-                          <td>{formatCurrency(order.price || 0)}</td>
-                          <td>{formatCurrency(order.totalAmount || 0)}</td>
-                        </tr>
-                      ))}
+                      {orders.map((order) => {
+                        // Support both old single-product and new multi-product formats
+                        const lineItems = order.lineItems 
+                          ? order.lineItems 
+                          : order.productName 
+                            ? [{ productName: order.productName, quantity: order.quantity, price: order.price }]
+                            : [];
+                        const totalQuantity = lineItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+                        const isMultiProduct = lineItems.length > 1;
+                        
+                        return (
+                          <tr key={order.id}>
+                            <td>{order.orderDate || '-'}</td>
+                            <td>
+                              {isMultiProduct ? (
+                                <span style={{ fontWeight: '600', color: 'var(--color-primary)' }}>
+                                  {lineItems.length} products
+                                </span>
+                              ) : (
+                                lineItems[0]?.productName || '-'
+                              )}
+                            </td>
+                            <td>{totalQuantity}</td>
+                            <td>{order.discount > 0 ? `${order.discount}%` : '-'}</td>
+                            <td><strong>{formatCurrency(order.totalAmount || 0)}</strong></td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
