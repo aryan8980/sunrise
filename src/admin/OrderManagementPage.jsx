@@ -2,7 +2,7 @@
 
 
 
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   addClientOrder,
   deleteClientOrder,
@@ -141,25 +141,22 @@ function OrderManagementPage() {
       return;
     }
 
-    if (!orderForm.productId) {
-      toast.error('Please select a product before generating bill PDF.');
+    if (lineItems.length === 0 || !lineItems.some(item => item.productId)) {
+      toast.error('Please add at least one product before generating bill PDF.');
       return;
     }
 
     const selectedClient = clients.find((client) => client.id === orderForm.clientId);
-    const selectedProduct = products.find((product) => product.id === orderForm.productId);
 
-    if (!selectedClient || !selectedProduct) {
-      toast.error('Unable to fetch client/product details for bill.');
+    if (!selectedClient) {
+      toast.error('Unable to fetch client details for bill.');
       return;
     }
 
     const billNo = orderForm.billNo || createBillNo();
     const orderDate = orderForm.orderDate || new Date().toISOString().slice(0, 10);
-    const quantity = Number(orderForm.quantity || 0);
-    const unitPrice = Number(orderForm.price || 0);
     const discountPercent = Number(orderForm.discount || 0);
-    const subtotal = quantity * unitPrice;
+    const subtotal = calculateTotal() / (1 - discountPercent / 100) || 0;
     const discountAmount = subtotal * (discountPercent / 100);
     const totalAmount = Math.max(0, subtotal - discountAmount);
 
@@ -203,45 +200,59 @@ function OrderManagementPage() {
     doc.text('Price', 138, 83);
     doc.text('Total', 170, 83);
 
+    // Line items content
     doc.setFont('helvetica', 'normal');
-    const category = selectedProduct.category || '-';
-    const productName = String(selectedProduct.name || '-');
-    // Truncate product name if too long
-    const maxProductNameLength = 30;
-    const displayProductName = productName.length > maxProductNameLength 
-      ? productName.substring(0, maxProductNameLength) + '...' 
-      : productName;
-    
-    doc.text(displayProductName, 16, 93);
-    doc.text(String(category), 70, 93);
-    doc.text(String(quantity), 120, 93);
-    doc.text(formatAmount(unitPrice), 138, 93);
-    doc.text(formatAmount(subtotal), 168, 93);
+    doc.setFontSize(10);
+    let yPosition = 93;
+
+    for (let item of lineItems) {
+      if (item.productId) {
+        const product = products.find(p => p.id === item.productId);
+        const productName = String(product?.name || '-');
+        const maxProductNameLength = 30;
+        const displayProductName = productName.length > maxProductNameLength 
+          ? productName.substring(0, maxProductNameLength) + '...' 
+          : productName;
+        
+        const lineTotal = item.quantity * item.price;
+
+        doc.text(displayProductName, 16, yPosition);
+        doc.text(String(product?.category || '-'), 70, yPosition);
+        doc.text(String(item.quantity), 120, yPosition);
+        doc.text(formatAmount(item.price), 138, yPosition);
+        doc.text(formatAmount(lineTotal), 168, yPosition);
+
+        yPosition += 7;
+      }
+    }
 
     doc.setDrawColor(210, 210, 210);
-    doc.line(14, 99, 196, 99);
+    doc.line(14, yPosition, 196, yPosition);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
-    doc.text('Subtotal:', 130, 108);
-    doc.text(formatAmount(subtotal), 190, 108, { align: 'right' });
+    yPosition += 9;
+    doc.text('Subtotal:', 130, yPosition);
+    doc.text(formatAmount(subtotal), 190, yPosition, { align: 'right' });
 
     if (discountPercent > 0) {
-      doc.text(`Discount (${discountPercent}%):`, 130, 115);
-      doc.text(`- ${formatAmount(discountAmount)}`, 190, 115, { align: 'right' });
+      yPosition += 7;
+      doc.text(`Discount (${discountPercent}%):`, 130, yPosition);
+      doc.text(`- ${formatAmount(discountAmount)}`, 190, yPosition, { align: 'right' });
     }
 
     doc.setDrawColor(180, 180, 180);
-    doc.line(130, discountPercent > 0 ? 119 : 112, 190, discountPercent > 0 ? 119 : 112);
+    doc.line(130, yPosition + 4, 190, yPosition + 4);
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text('Grand Total:', 130, discountPercent > 0 ? 128 : 121);
-    doc.text(formatAmount(totalAmount), 190, discountPercent > 0 ? 128 : 121, { align: 'right' });
+    yPosition += 13;
+    doc.text('Grand Total:', 130, yPosition);
+    doc.text(formatAmount(totalAmount), 190, yPosition, { align: 'right' });
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
-    doc.text(`Payment Mode: ${orderForm.paymentMode || '-'}`, 14, discountPercent > 0 ? 136 : 129);
+    doc.text(`Payment Mode: ${orderForm.paymentMode || '-'}`, 14, yPosition + 8);
 
     doc.setFontSize(10);
     doc.setTextColor(120, 120, 120);
@@ -252,23 +263,36 @@ function OrderManagementPage() {
   };
 
   const handleEditOrder = (order) => {
-    const selectedProduct = products.find(p => p.id === order.productId);
+    // Support both old single-product format and new multi-product format
+    const reconstructedLineItems = order.lineItems 
+      ? order.lineItems.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      : order.productId // Backward compatibility with old format
+        ? [{
+            productId: order.productId,
+            quantity: order.quantity,
+            price: order.price
+          }]
+        : [{ ...lineItemInitial }];
+
     setOrderForm({
       clientId: order.clientId,
       billNo: order.billNo,
       orderDate: order.orderDate,
-      productId: order.productId || '',
-      quantity: order.quantity,
-      price: selectedProduct?.price || order.price || 0,
       discount: order.discount || 0,
       paymentMode: order.paymentMode
     });
+    setLineItems(reconstructedLineItems);
     setEditingOrder(order);
     setShowForm(true);
   };
 
   const handleCancelEdit = () => {
     setOrderForm(orderInitial);
+    setLineItems([{ ...lineItemInitial }]);
     setEditingOrder(null);
     setShowForm(false);
   };
@@ -281,9 +305,21 @@ function OrderManagementPage() {
       return;
     }
 
-    if (!orderForm.productId) {
-      toast.error('Please select a product.');
+    if (lineItems.length === 0) {
+      toast.error('Please add at least one product.');
       return;
+    }
+
+    // Validate all line items have required fields
+    for (let item of lineItems) {
+      if (!item.productId) {
+        toast.error('Please select a product for all line items.');
+        return;
+      }
+      if (!item.quantity || item.quantity <= 0) {
+        toast.error('Please enter valid quantity for all products.');
+        return;
+      }
     }
 
     if (!orderForm.billNo) {
@@ -292,20 +328,43 @@ function OrderManagementPage() {
     }
 
     try {
-      const selectedProduct = products.find(p => p.id === orderForm.productId);
-      const totalAmount = calculateTotal();
+      // Format line items with product details
+      const formattedLineItems = lineItems.map((item) => {
+        const product = products.find(p => p.id === item.productId);
+        // Ensure price is set, either from item.price or from product lookup
+        const price = Number(item.price || product?.price || 0);
+        const quantity = Number(item.quantity || 0);
+        
+        console.log(`Line item: ${product?.name}, Qty: ${quantity}, Price: ${price}, Total: ${quantity * price}`);
+        
+        return {
+          productId: item.productId,
+          productName: product?.name || 'Unknown Product',
+          productCategory: product?.category || '-',
+          quantity: quantity,
+          price: price,
+          lineTotal: quantity * price
+        };
+      });
+
+      // Calculate total from formatted line items (with correct prices)
+      const subtotal = formattedLineItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+      const discountPercent = Number(orderForm.discount || 0);
+      const discountAmount = subtotal * (discountPercent / 100);
+      const totalAmount = Math.max(0, subtotal - discountAmount);
+      
+      console.log(`Subtotal: ${subtotal}, Discount: ${discountAmount}, Total: ${totalAmount}`);
+
       const payload = {
         orderDate: orderForm.orderDate,
-        productName: selectedProduct?.name || 'Unknown Product',
-        productId: orderForm.productId,
-        productCategory: selectedProduct?.category || '-',
-        quantity: Number(orderForm.quantity),
-        price: Number(orderForm.price),
+        lineItems: formattedLineItems,
         discount: Number(orderForm.discount || 0),
         totalAmount: totalAmount,
         paymentMode: orderForm.paymentMode,
         billNo: orderForm.billNo
       };
+      
+      console.log('Payload:', payload);
 
       if (editingOrder) {
         await updateClientOrder(editingOrder.clientId, editingOrder.id, payload);
@@ -316,6 +375,7 @@ function OrderManagementPage() {
       }
       
       setOrderForm(orderInitial);
+      setLineItems([{ ...lineItemInitial }]);
       setEditingOrder(null);
       setShowForm(false);
       loadData();
@@ -371,6 +431,7 @@ function OrderManagementPage() {
       {showForm && (
         <form className='form-card order-form' onSubmit={handleSubmit}>
           <h3>{editingOrder ? 'Edit Order' : 'Add New Order'}</h3>
+          
           <div className='form-grid'>
             <div className='form-group'>
               <label htmlFor='client'>Client *</label>
@@ -412,59 +473,6 @@ function OrderManagementPage() {
             </div>
             
             <div className='form-group'>
-              <label htmlFor='product'>Product *</label>
-              <select
-                id='product'
-                value={orderForm.productId}
-                onChange={(e) => handleProductSelect(e.target.value)}
-                required
-              >
-                <option value=''>Select Product</option>
-                {products.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name} - {formatCurrency(product.price)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className='form-group'>
-              <label htmlFor='quantity'>Quantity *</label>
-              <input
-                id='quantity'
-                type='number'
-                placeholder='1'
-                value={orderForm.quantity}
-                onChange={(e) => setOrderForm({ ...orderForm, quantity: e.target.value })}
-                min='1'
-                required
-              />
-            </div>
-            
-            <div className='form-group'>
-              <label htmlFor='price'>Price (Per Unit) *</label>
-              <input
-                id='price'
-                type='number'
-                value={orderForm.price}
-                onChange={(e) => setOrderForm({ ...orderForm, price: e.target.value })}
-                disabled
-                className='disabled-input'
-              />
-            </div>
-            
-            <div className='form-group'>
-              <label htmlFor='total'>Total Price</label>
-              <input
-                id='total'
-                type='number'
-                value={calculateTotal().toFixed(2)}
-                disabled
-                className='disabled-input'
-              />
-            </div>
-            
-            <div className='form-group'>
               <label htmlFor='discount'>Discount (%)</label>
               <input
                 id='discount'
@@ -492,6 +500,142 @@ function OrderManagementPage() {
                 <option value='Cheque'>Cheque</option>
               </select>
             </div>
+          </div>
+          
+          <div className='line-items-section'>
+            <div className='line-items-header'>
+              <label>Products *</label>
+              <button
+                type='button'
+                className='btn btn--sm btn--secondary'
+                onClick={addLineItem}
+              >
+                + Add Product
+              </button>
+            </div>
+            
+            {lineItems.map((item, index) => (
+              <div key={index} className='line-item-row'>
+                <div className='line-item-fields'>
+                  <div className='form-group form-group--inline'>
+                    <label htmlFor={`product-${index}`}>Product</label>
+                    <select
+                      id={`product-${index}`}
+                      value={item.productId}
+                      onChange={(e) => updateLineItem(index, 'productId', e.target.value)}
+                      required
+                    >
+                      <option value=''>Select Product</option>
+                      {products.map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.name} - {formatCurrency(product.price)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className='form-group form-group--inline'>
+                    <label htmlFor={`quantity-${index}`}>Quantity</label>
+                    <input
+                      id={`quantity-${index}`}
+                      type='number'
+                      placeholder='1'
+                      value={item.quantity}
+                      onChange={(e) => updateLineItem(index, 'quantity', e.target.value)}
+                      min='1'
+                      required
+                    />
+                  </div>
+                  
+                  <div className='form-group form-group--inline'>
+                    <label htmlFor={`price-${index}`}>Price (Per Unit)</label>
+                    <input
+                      id={`price-${index}`}
+                      type='number'
+                      value={item.price}
+                      disabled
+                      className='disabled-input'
+                    />
+                  </div>
+                  
+                  <div className='form-group form-group--inline'>
+                    <label>Line Total</label>
+                    <input
+                      type='number'
+                      value={(item.quantity * item.price || 0).toFixed(2)}
+                      disabled
+                      className='disabled-input'
+                    />
+                  </div>
+                </div>
+                
+                {lineItems.length > 1 && (
+                  <button
+                    type='button'
+                    className='btn btn--sm btn--danger line-item-remove'
+                    onClick={() => removeLineItem(index)}
+                    title='Remove this product'
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div className='order-summary-section'>
+            <div className='summary-row'>
+              <span className='summary-label'>Subtotal:</span>
+              <span className='summary-value'>{formatCurrency(calculateTotal() / (1 - (orderForm.discount || 0) / 100) || 0)}</span>
+            </div>
+            {orderForm.discount > 0 && (
+              <div className='summary-row discount-row'>
+                <span className='summary-label'>Discount ({orderForm.discount}%):</span>
+                <span className='summary-value'>- {formatCurrency((calculateTotal() / (1 - (orderForm.discount || 0) / 100) || 0) * (orderForm.discount / 100))}</span>
+              </div>
+            )}
+            <div className='summary-row total-row'>
+              <span className='summary-label'>Total Amount:</span>
+              <span className='summary-value'>{formatCurrency(calculateTotal())}</span>
+            </div>
+          </div>
+          
+          <div className='products-preview-table'>
+            <h4>Order Details</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Unit Price</th>
+                  <th>Line Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lineItems.filter(item => item.productId).length === 0 ? (
+                  <tr>
+                    <td colSpan='4' style={{ textAlign: 'center', padding: '1rem' }}>
+                      No products added yet
+                    </td>
+                  </tr>
+                ) : (
+                  lineItems.map((item, index) => {
+                    if (!item.productId) return null;
+                    const product = products.find(p => p.id === item.productId);
+                    return (
+                      <tr key={index}>
+                        <td>{product?.name || '-'}</td>
+                        <td style={{ textAlign: 'center' }}>{item.quantity}</td>
+                        <td style={{ textAlign: 'right' }}>{formatCurrency(item.price || 0)}</td>
+                        <td style={{ textAlign: 'right', fontWeight: '600' }}>
+                          {formatCurrency((item.quantity * item.price) || 0)}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
           
           <div className='form-actions'>
@@ -547,14 +691,13 @@ function OrderManagementPage() {
         <table>
           <thead>
             <tr>
+              <th style={{ width: '40px' }}></th>
               <th>Date</th>
               <th>Bill No</th>
               <th>Client</th>
               <th>Phone</th>
-              <th>Product</th>
-              <th>Category</th>
-              <th>Qty</th>
-              <th>Price</th>
+              <th>Products</th>
+              <th>Total Items</th>
               <th>Discount</th>
               <th>Total</th>
               <th>Payment</th>
@@ -564,40 +707,129 @@ function OrderManagementPage() {
           <tbody>
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan='12' style={{ textAlign: 'center' }}>
+                <td colSpan='11' style={{ textAlign: 'center' }}>
                   No orders found
                 </td>
               </tr>
             ) : (
-              filteredOrders.map((order) => (
-                <tr key={`${order.clientId}-${order.id}`}>
-                  <td>{order.orderDate || '-'}</td>
-                  <td>{order.billNo || '-'}</td>
-                  <td>{order.clientName}</td>
-                  <td>{order.clientPhone}</td>
-                  <td>{order.productName}</td>
-                  <td>{order.productCategory}</td>
-                  <td>{order.quantity}</td>
-                  <td>{formatCurrency(order.price || 0)}</td>
-                  <td>{order.discount > 0 ? `${order.discount}%` : '-'}</td>
-                  <td><strong>{formatCurrency(order.totalAmount || 0)}</strong></td>
-                  <td>{order.paymentMode || '-'}</td>
-                  <td>
-                    <button 
-                      className='btn btn--ghost btn--small' 
-                      onClick={() => handleEditOrder(order)}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className='btn btn--ghost btn--small' 
-                      onClick={() => handleDeleteOrder(order.clientId, order.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
+              filteredOrders.map((order) => {
+                // Support both old single-product and new multi-product formats
+                const lineItems = order.lineItems ? order.lineItems : order.productId ? [{
+                  productName: order.productName,
+                  productCategory: order.productCategory,
+                  quantity: order.quantity,
+                  price: order.price
+                }] : [];
+                
+                const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
+                const isMultiProduct = lineItems.length > 1;
+                
+                return (
+                  <React.Fragment key={`${order.clientId}-${order.id}`}>
+                    <tr>
+                      <td style={{ width: '40px' }}>
+                        {isMultiProduct && (
+                          <button 
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '1.2rem',
+                              padding: '0'
+                            }}
+                            onClick={() => {
+                              const row = document.getElementById(`expand-${order.clientId}-${order.id}`);
+                              if (row) {
+                                row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+                              }
+                            }}
+                            title='Expand to see all products'
+                          >
+                            ▶
+                          </button>
+                        )}
+                      </td>
+                      <td>{order.orderDate || '-'}</td>
+                      <td>{order.billNo || '-'}</td>
+                      <td>{order.clientName}</td>
+                      <td>{order.clientPhone}</td>
+                      <td>
+                        {isMultiProduct ? (
+                          <span style={{ fontWeight: '600', color: 'var(--color-primary)' }}>
+                            {lineItems.length} products
+                          </span>
+                        ) : (
+                          lineItems[0]?.productName || '-'
+                        )}
+                      </td>
+                      <td>{totalQuantity}</td>
+                      <td>{order.discount > 0 ? `${order.discount}%` : '-'}</td>
+                      <td><strong>{formatCurrency(order.totalAmount || 0)}</strong></td>
+                      <td>{order.paymentMode || '-'}</td>
+                      <td>
+                        <button 
+                          className='btn btn--ghost btn--small' 
+                          onClick={() => handleEditOrder(order)}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          className='btn btn--ghost btn--small' 
+                          onClick={() => handleDeleteOrder(order.clientId, order.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                    
+                    {isMultiProduct && (
+                      <tr 
+                        id={`expand-${order.clientId}-${order.id}`}
+                        style={{ 
+                          display: 'none',
+                          backgroundColor: '#f9f5f7'
+                        }}
+                      >
+                        <td colSpan='11' style={{ padding: '1rem' }}>
+                          <div style={{ paddingLeft: '1rem' }}>
+                            <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--color-primary)' }}>
+                              Products in this Order:
+                            </h4>
+                            <table style={{ 
+                              width: '100%',
+                              borderCollapse: 'collapse',
+                              fontSize: '0.9rem'
+                            }}>
+                              <thead>
+                                <tr style={{ borderBottom: '1px solid var(--color-gray-light)' }}>
+                                  <th style={{ textAlign: 'left', padding: '0.5rem 0', fontWeight: '600' }}>Product</th>
+                                  <th style={{ textAlign: 'left', padding: '0.5rem 0', fontWeight: '600' }}>Category</th>
+                                  <th style={{ textAlign: 'left', padding: '0.5rem 0', fontWeight: '600' }}>Qty</th>
+                                  <th style={{ textAlign: 'left', padding: '0.5rem 0', fontWeight: '600' }}>Price</th>
+                                  <th style={{ textAlign: 'left', padding: '0.5rem 0', fontWeight: '600' }}>Line Total</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {lineItems.map((item, idx) => (
+                                  <tr key={idx} style={{ borderBottom: '1px solid var(--color-gray-lightest)' }}>
+                                    <td style={{ padding: '0.5rem 0' }}>{item.productName || '-'}</td>
+                                    <td style={{ padding: '0.5rem 0' }}>{item.productCategory || '-'}</td>
+                                    <td style={{ padding: '0.5rem 0' }}>{item.quantity}</td>
+                                    <td style={{ padding: '0.5rem 0' }}>{formatCurrency(item.price || 0)}</td>
+                                    <td style={{ padding: '0.5rem 0', fontWeight: '600' }}>
+                                      {formatCurrency((item.quantity * item.price) || 0)}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })
             )}
           </tbody>
         </table>

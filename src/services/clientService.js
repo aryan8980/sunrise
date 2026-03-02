@@ -47,9 +47,16 @@ export async function listClientOrders(clientId) {
 
 export function addClientOrder(clientId, payload) {
   const ordersRef = collection(db, 'clients', clientId, 'orders');
+  
+  // If totalAmount is already provided (new multi-product format), use it
+  // Otherwise calculate it from quantity and price (old single-product format)
+  const totalAmount = payload.totalAmount !== undefined 
+    ? payload.totalAmount
+    : Number(payload.quantity || 0) * Number(payload.price || 0);
+  
   return addDoc(ordersRef, {
     ...payload,
-    totalAmount: Number(payload.quantity || 0) * Number(payload.price || 0)
+    totalAmount: totalAmount
   });
 }
 
